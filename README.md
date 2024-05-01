@@ -19,4 +19,4 @@ pip install vortice
 
 ## License
 
-`vortice` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+`vortice` is distributed under the terms of the GPL3 license.

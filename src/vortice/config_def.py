@@ -1,92 +1,75 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
-from abc import ABC
+from abc import ABC, List
 import pendulum
-
-
-class GhgSite:
-    """
-    Dataclass for GHG metadata
-    """
-    def __init__(
-        self,
-        name: str,
-        lat: float,
-        lon: float,
-        alt: float,
-        canopy_height: float,
-        roughness_length: Optional[float] = None,
-        flux_window: int = 30
-    ) -> None:
-        self.name = name
-        self.lat = lat
-        self.lon = lon
-        self.alt = alt
-        self.canopy_height = canopy_height
-
-        if self.roughness_length is None:
-            self.roughness_length = 0.15 * self.canopy_height
-        else:
-            self.roughness_length = roughness_length
-        self.flux_window = flux_window
-
-
-
-class InstrumentConfig(ABC):
-    
-    def __init__(
-            self,
-            name: str
-        ) -> None:
-        self.name = name
-
-
-class GhgDataField:
-
-    def __init__(
-        self,
-        name: str,
-        variable: str,
-        unit: str,
-        instrument: Optional[InstrumentConfig] = None
-    ) -> None:
-        self.name = name
-        self.variable = variable
-        self.unit = unit
-        self.instrument = instrument
-
-
-class GhgDataset(ABC):
-
-    def __init__(
-        self,
-        name: str,
-        columns: list[GhgDataField],
-        tz: str = "UTC",
-        freq: int = 10
-    ) -> None:
-        self.name = name
-        self.columns = columns
-        self.tz = tz
-        self.freq = freq
-
-    @property
-    def pendulum_tz(self, timezone: str):
-        self.tz = pendulum.timezone(timezone)
-
-
-
-
+import polars as pl
 
 
 @dataclass
-class Anemometer3DConfig(InstrumentConfig):
-    manufacturer: str
-    model: str
-    height: float
-    sw_version: Optional[str] = None
-    serial: Optional[str] = None
+class SiteConfig:
+    """
+    Dataclass for GHG metadata.
+    """
+    name: str
+    lat: float
+    lon: float
+    alt: float
+    canopy_height: float
+    roughness_length: Optional[float] = field(default=None)
+
+    def __post_init__(self):
+        if self.roughness_length is None:
+            self.roughness_length = 0.15 * self.canopy_height
+
+
+@dataclass
+class InstrumentConfig(ABC):
+    name: str
+    manufacturer: Optional[str] = None
     local_id: Optional[str] = None
+    serial: Optional[str] = None
+    model: Optional[str] = None
+    sw_version: Optional[str] = None
+
+
+@dataclass
+class GhgDataField:
+    name: str
+    variable: str
+    unit: Optional[str] = None
+    instrument: Optional[InstrumentConfig] = None
+
+
+@dataclass
+class GhgDataset:
+    name: str
+    site: SiteConfig
+    columns: List[GhgDataField]
+    dataset: Optional[pl.DataFrame]
+    tz: str = "UTC"
+    period: Optional[int] = None
+    freq: Optional[int] = None
+
+
+    def __post_init__(self):
+
+        # Check that only one of 'period' or 'freq' is set
+        if self.period is not None and self.freq is not None:
+            raise ValueError("Only one of 'period' or 'freq' can be set.")
+        elif self.period:
+            self.freq = 1 / self.period
+        elif self.freq:
+            self.period = 1 / self.freq
+
+    def set_pendulum_tz(self, timezone: str):
+        self.tz = pendulum.timezone(timezone).name
+    
+
+
+
+
+class Anemometer3DConfig(InstrumentConfig):
+    height: Optional[float] = 3.0
     wref: Optional[str] = None
     north_offset: Optional[float] = 0.0
     northward_separation: Optional[float] = 0.0
@@ -96,13 +79,8 @@ class Anemometer3DConfig(InstrumentConfig):
     hpath_length: Optional[float] = 1.0
     tau: Optional[float] = 0.1
 
-@dataclass
+
 class GasAnalyzer(InstrumentConfig):
-    manufacturer: str
-    model: str
-    sw_version: Optional[str] = None
-    serial: Optional[str] = None
-    local_id: Optional[str] = None
     tube_length: Optional[float] = 0.0
     tube_diameter: Optional[float] = 0.0
     tube_flowrate: Optional[float] = 0.0

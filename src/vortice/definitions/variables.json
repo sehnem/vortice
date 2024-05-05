@@ -1,0 +1,130 @@
+[
+    {
+        "name": "wind_u",
+        "default_unit": "m/s",
+        "accepted_units": [
+            "m/s",
+            "km/h",
+            "mph",
+            "knots"
+        ]
+    },
+    {
+        "name": "wind_v",
+        "default_unit": "m/s",
+        "accepted_units": [
+            "m/s",
+            "km/h",
+            "mph",
+            "knots"
+        ]
+    },
+    {
+        "name": "wind_w",
+        "default_unit": "m/s",
+        "accepted_units": [
+            "m/s",
+            "km/h",
+            "mph",
+            "knots"
+        ]
+    },
+    {
+        "name": "wind_speed",
+        "default_unit": "m/s",
+        "accepted_units": [
+            "m/s",
+            "km/h",
+            "mph",
+            "knots"
+        ]
+    },
+    {
+        "name": "wind_direction",
+        "default_unit": "degrees",
+        "accepted_units": [
+            "degrees",
+            "radians"
+        ]
+    },
+    {
+        "name": "temperature",
+        "default_unit": "K",
+        "accepted_units": [
+            "K",
+            "C",
+            "F"
+        ]
+    },
+    {
+        "name": "pressure",
+        "default_unit": "Pa",
+        "accepted_units": [
+            "Pa",
+            "hPa",
+            "kPa",
+            "atm",
+            "bar",
+            "psi",
+            "mmHg",
+            "inHg"
+        ]
+    },
+    {
+        "name": "humidity",
+        "default_unit": "%",
+        "accepted_units": [
+            "%"
+        ]
+    },
+    {
+        "name": "dewpoint",
+        "default_unit": "K",
+        "accepted_units": [
+            "K",
+            "C",
+            "F"
+        ]
+    },
+    {
+        "name": "precipitation",
+        "default_unit": "mm",
+        "accepted_units": [
+            "mm",
+            "in"
+        ]
+    },
+    {
+        "name": "co2",
+        "default_unit": "mmol/m^3",
+        "accepted_units": [
+            "mmol/m^3"
+        ]
+    },
+    {
+        "name": "h2o",
+        "default_unit": "mmol/m^3",
+        "accepted_units": [
+            "mmol/m^3"
+        ]
+    },
+    {
+        "name": "ch4",
+        "default_unit": "mmol/m^3",
+        "accepted_units": [
+            "mmol/m^3"
+        ]
+    },
+    {
+        "name": "ch4_frac",
+        "default_unit": "umol/mol",
+        "accepted_units": [
+            "umol/mol"
+        ]
+    },
+    {
+        "name": "diagnostic",
+        "default_unit": null,
+        "accepted_units": null
+    }
+]

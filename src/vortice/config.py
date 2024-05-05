@@ -7,7 +7,8 @@ import numpy as np
 import numpy as np
 from datetime import datetime
 from enum import Enum
-
+from vortice.config_def import GhgDataset
+import logging
 
 # biomet data
 # Ambient temperature, pressure and relative humidity - available in eddycovariance but less precise
@@ -25,8 +26,22 @@ class FluxDataFrame:
     def __init__(self, df: pl.DataFrame):
         self._df = df
 
-    def config(self, metadata: GHGMetadata) -> list[pl.DataFrame]:
-        self.metadata = GHGMetadata.update(metadata)
+    def config(self, metadata: GhgDataset) -> list[pl.DataFrame]:
+        self.metadata = metadata
+        meta_columns = [self.metadata.time_column] + [f.name for f in self.metadata.columns]
+
+        for column in meta_columns:
+            if column not in self._df.columns:
+                raise ValueError(f"Column '{column}' not found in DataFrame.")
+        for column in self._df.columns:
+            if column not in meta_columns:
+                self._df = self._df.drop(column)
+                logging.warning(f"Column '{column}' not found in metadata.")
+        
+        if not isinstance(self._df[self.metadata.time_column].dtype, pl.Datetime):
+            raise ValueError(f"Time column '{self.metadata.time_column}' must be of type datetime.")
+        
+        
 
     def _set_is_daytime(self):
 

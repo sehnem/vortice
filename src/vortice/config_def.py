@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
-from typing import Optional
-from abc import ABC, List
+from typing import Optional, List
+from abc import ABC
 import pendulum
 import polars as pl
 
@@ -45,17 +45,18 @@ class GhgDataset:
     name: str
     site: SiteConfig
     columns: List[GhgDataField]
-    dataset: Optional[pl.DataFrame]
+    time_column: str
     tz: str = "UTC"
     period: Optional[int] = None
     freq: Optional[int] = None
 
 
     def __post_init__(self):
-
         # Check that only one of 'period' or 'freq' is set
         if self.period is not None and self.freq is not None:
             raise ValueError("Only one of 'period' or 'freq' can be set.")
+        elif self.period is None and self.freq is None:
+            raise ValueError("Either 'period' or 'freq' must be set.")
         elif self.period:
             self.freq = 1 / self.period
         elif self.freq:
@@ -63,11 +64,8 @@ class GhgDataset:
 
     def set_pendulum_tz(self, timezone: str):
         self.tz = pendulum.timezone(timezone).name
-    
 
-
-
-
+@dataclass
 class Anemometer3DConfig(InstrumentConfig):
     height: Optional[float] = 3.0
     wref: Optional[str] = None
@@ -79,8 +77,8 @@ class Anemometer3DConfig(InstrumentConfig):
     hpath_length: Optional[float] = 1.0
     tau: Optional[float] = 0.1
 
-
-class GasAnalyzer(InstrumentConfig):
+@dataclass
+class GasAnalyzerConfig(InstrumentConfig):
     tube_length: Optional[float] = 0.0
     tube_diameter: Optional[float] = 0.0
     tube_flowrate: Optional[float] = 0.0

@@ -1,24 +1,9 @@
 import polars as pl
 from typing import Any, Dict, Optional
-import re
-import pendulum
-from dataclasses import dataclass, field
 import numpy as np
-import numpy as np
-from datetime import datetime
-from enum import Enum
-from vortice.config_def import GhgDataset
+from vortice.config_global import GhgDataset
+from vortice.config_data_fields import GhgNumericField, GhgDiagnosticField
 import logging
-
-# biomet data
-# Ambient temperature, pressure and relative humidity - available in eddycovariance but less precise
-# Data of global radiation and long-wave incoming radiation can be used in the
-# multiple regression” version of the off-season uptake correction (Burba et al.2008)
-# Data of photosynthetically active radiation (PAR, also called PPFD, photosynthetic photon flux density) can be used to assess day and night-time radiation loading on the surface of the instrument, to apply the appropriate coefficients and modeling of the instrument surface temperature in the off-season uptake correction.
-
-
-
-
 
 
 @pl.api.register_dataframe_namespace("flux")
@@ -28,8 +13,23 @@ class FluxDataFrame:
 
     def config(self, metadata: GhgDataset) -> list[pl.DataFrame]:
         self.metadata = metadata
-        meta_columns = [self.metadata.time_column] + [f.name for f in self.metadata.columns]
+        meta_columns = [self.metadata.time_column] + [
+            f.name for f in self.metadata.columns
+        ]
 
+        # Check that the column names are unique
+        if len(self._df.columns) != len(self._df.columns):
+            raise ValueError(
+                f"Config columns has duplicated names."
+            )
+        
+        # Check that the time column is of type datetime
+        if not isinstance(self._df[self.metadata.time_column].dtype, pl.Datetime):
+            raise ValueError(
+                f"Time column '{self.metadata.time_column}' must be of type datetime."
+            )
+
+        # Adjust and check metadata columns
         for column in meta_columns:
             if column not in self._df.columns:
                 raise ValueError(f"Column '{column}' not found in DataFrame.")
@@ -37,11 +37,19 @@ class FluxDataFrame:
             if column not in meta_columns:
                 self._df = self._df.drop(column)
                 logging.warning(f"Column '{column}' not found in metadata.")
-        
-        if not isinstance(self._df[self.metadata.time_column].dtype, pl.Datetime):
-            raise ValueError(f"Time column '{self.metadata.time_column}' must be of type datetime.")
-        
-        
+
+        # Convert the units to default units
+        self.convert_to_default_units()
+
+
+
+
+    def convert_to_default_units(self):
+        for field in self.metadata.columns:
+            if isinstance(field, GhgNumericField):
+                self._df = self._df.with_columns(
+                    field.convert_units(self._df[field.name]).alias(field.name)
+                )
 
     def _set_is_daytime(self):
 

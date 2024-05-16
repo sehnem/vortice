@@ -41,6 +41,18 @@ class FluxDataFrame:
         # Convert the units to default units
         self.convert_to_default_units()
 
+    def wind_direction(self, u: pl.Series, v: pl.Series) -> pl.Series:
+        offset = anemometer3d.north_offset - 180.0
+        wind_dir = (
+            df_hf.select(["TIMESTAMP", "u", "v"])
+            .with_columns(
+                (180 - pl.arctan2d(pl.col("v"), pl.col("u")) + offset)
+                .mod(360)
+                .alias("wind_dir")
+            )
+            .select(["TIMESTAMP", "wind_dir"])
+        )
+
 
 
 
@@ -50,6 +62,7 @@ class FluxDataFrame:
                 self._df = self._df.with_columns(
                     field.convert_units(self._df[field.name]).alias(field.name)
                 )
+        
 
     def _set_is_daytime(self):
 

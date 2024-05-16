@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from vortice.config_global import InstrumentConfig
+from vortice.config_instruments import Anemometer3DConfig
 from typing import Optional, Dict
 from abc import ABC, abstractmethod
 import polars as pl
@@ -121,35 +122,54 @@ class WindSpeedField(GhgNumericField):
 
 
 @dataclass
-class Wind3dUField(WindSpeedField):
+class WindSpeed3DField(WindSpeedField):
+    variable: str = "wind_speed_3d"
+    instrument: Anemometer3DConfig
+
+@dataclass
+class Wind3dUField(WindSpeed3DField):
     variable: str = "wind_speed_u"
 
 
 @dataclass
-class Wind3dVField(WindSpeedField):
+class Wind3dVField(WindSpeed3DField):
     variable: str = "wind_speed_v"
 
 
 @dataclass
-class Wind3dWField(WindSpeedField):
+class Wind3dWField(WindSpeed3DField):
     variable: str = "wind_speed_w"
 
 
 @dataclass
 class GasField(GhgNumericField):
-    variable: str = "gas_name"
-
+    variable: str = "gas"
+    default_unit: str = "mmol/m^3"
+    conversion_mapping = {"mmol/m^3": UnitConversion()}
 
 @dataclass
-class H2OField(GhgNumericField):
+class GasMoleField(GhgNumericField):
+    variable: str = "gas_mole"
+    default_unit: str = "umol/mol"
+    conversion_mapping = {"umol/mol": UnitConversion()}
+
+@dataclass
+class H2OField(GasField):
     variable: str = "h20"
 
 
 @dataclass
-class CH4Field(GhgNumericField):
+class CO2Field(GasField):
     variable: str = "co2"
 
 
 @dataclass
-class CH4Field(GhgNumericField):
+class CH4Field(GasField):
     variable: str = "ch4"
+
+
+@dataclass
+class CH4MoleField(GhgNumericField):
+    variable: str = "ch4_mole_fraction"
+    default_unit: str = "umol/mol"
+    conversion_mapping = {"umol/mol": UnitConversion()}
